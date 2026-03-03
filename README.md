@@ -73,96 +73,41 @@ pnpm start
 ## 许可证
 
 MIT
-# wx-scraper
-获取135编辑器 96编辑器模版 提示
+## 🚀 快速启动 (推荐)
 
-# 项目数据库设置指南
+本项目已提供一键启动脚本，小白也能无痛运行：
+1. 双击运行项目根目录下的 `start.bat`
+2. 脚本会自动安装所需依赖并启动本地服务器
+3. 服务完全就绪后将自动在浏览器中打开使用界面操作
 
-## Prisma 数据库设置
+---
 
-本项目使用 Prisma ORM 来操作 PostgreSQL 数据库。以下是完整的设置步骤：
+## 💻 手动开发指南
 
-### 1. 安装依赖
-
-已经安装了以下依赖：
-- `prisma@4.16.2`（开发依赖）
-- `@prisma/client`（运行时依赖）
-
-### 2. 配置数据库连接
-
-打开 `.env` 文件，修改 `DATABASE_URL` 环境变量：
-
-```
-DATABASE_URL="postgresql://用户名:密码@localhost:5432/数据库名?schema=public"
-```
-
-请将 `用户名`、`密码` 和 `数据库名` 替换为实际的 PostgreSQL 数据库信息。
-
-### 3. 创建数据库（如果尚未创建）
-
-使用 PostgreSQL 客户端或命令行工具创建数据库：
+1. 安装依赖
 
 ```bash
-psql -U postgres
-CREATE DATABASE 你的数据库名;
+pnpm install
 ```
 
-### 4. 运行数据库迁移
-
-初始化数据库结构：
+2. 启动开发服务器
 
 ```bash
-npx prisma migrate dev --name init
+pnpm dev
 ```
 
-这将创建所有数据表并生成 Prisma 客户端。
+3. 在浏览器中打开 [http://localhost:3000](http://localhost:3000)
 
-### 5. 生成 Prisma 客户端（如果需要更新）
+## 🌟 核心功能
 
-每当更改 Prisma 模型后，都需要重新生成客户端：
+1. **直接提取源码 (New)**：无需保存到任何编辑器，一键获取目标模板的底层 HTML 纯净源码并复制。
+2. **账号保存互通**：支持通过配置账号将 A 平台的优秀模板提取并无缝保存到您绑定的 B 平台账号下。
+3. **多平台支持**：内置对135编辑器、96编辑器以及原生微信公众号文章的适配解析。
 
-```bash
-npx prisma generate
-```
+## ⚠️ 注意事项
 
-## 数据模型
+如需使用“一键保存到账号”功能，您需在 `src/app/api/login135/route.ts` 中将演示代码里的写死账号配置替换为您**自己的真实账号密码**，否则会因触发135的风控导致始终保存失败。如果您只使用“仅提取源码”功能，则无需配置账号。
 
-本项目包含以下数据模型：
+## 许可证
 
-1. **User** - 用户信息
-   - 字段：id, account, name, avatar, status, role
-   - 关系：templates, shares
-
-2. **Template** - 模板信息
-   - 字段：id, title, content, templateId, type, authorId
-   - 关系：author, shares
-  
-3. **Share** - 分享记录
-   - 字段：id, templateId, userId, status
-   - 关系：template, user
-
-## API 端点
-
-API 路由位于 `src/app/api` 目录下：
-
-1. **用户 API** - `/api/users`
-   - GET：获取所有用户
-   - POST：创建新用户
-
-2. **模板 API** - `/api/templates`
-   - GET：获取模板列表，支持按类型和作者筛选
-   - POST：创建新模板
-
-3. **分享 API** - `/api/shares`
-   - GET：获取分享记录，支持按用户和模板筛选
-   - POST：创建新的分享记录
-
-## Prisma Studio
-
-Prisma 提供了一个可视化工具 Prisma Studio，用于查看和管理数据库：
-
-```bash
-npx prisma studio
-```
-
-运行后，在浏览器中访问 http://localhost:5555 即可。
+MIT
