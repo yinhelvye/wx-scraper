@@ -16,7 +16,7 @@ type ProcessStep = 'idle' | 'scraping' | 'saving' | 'sending' | 'success' | 'err
 // 编辑器类型
 type EditorType = "135" | "wechat" | "96";
 // 接收编辑器类型
-type ReceiveEditorType = "135" | "96" | null;
+type ReceiveEditorType = "135" | "96" | "html" | null;
 
 export default function EditPage() {
   const [editorType, setEditorType] = useState<EditorType>("135");
@@ -25,6 +25,7 @@ export default function EditPage() {
   const [receiverId, setReceiverId] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{type: 'success' | 'error' | 'info', text: string} | null>(null);
+  const [extractedHtml, setExtractedHtml] = useState<string>("");
   
   // 进度状态
   const [processStep, setProcessStep] = useState<ProcessStep>('idle');
@@ -48,12 +49,12 @@ export default function EditPage() {
     if (!receiveEditorType) {
       setMessage({
         type: 'error',
-        text: '请选择接收编辑器'
+        text: '请选择接收方式'
       });
       return;
     }
 
-    if (!receiverId.trim()) {
+    if (receiveEditorType !== 'html' && !receiverId.trim()) {
       setMessage({
         type: 'error',
         text: '请输入接收账户ID'
@@ -64,6 +65,7 @@ export default function EditPage() {
     // 重置状态
     setLoading(true);
     setMessage(null);
+    setExtractedHtml("");
     setProcessStep('scraping');
     setDetailedLogs([]);
     
@@ -117,7 +119,11 @@ export default function EditPage() {
       const successResults = [];
       
       // 根据选择的接收编辑器类型处理
-      if (receiveEditorType === '135') {
+      if (receiveEditorType === 'html') {
+          setExtractedHtml(scrapeResult.content);
+          successResults.push("源码已成功提取，你可以直接复制。");
+          addLog("源码提取成功。");
+      } else if (receiveEditorType === '135') {
         try {
           const title = `135模板导入-${new Date().toLocaleString()}`;
           addLog("开始保存模板内容到135编辑器...");
@@ -372,10 +378,19 @@ export default function EditPage() {
                         />
                         <Label htmlFor="receive96">96微信编辑器</Label>
                       </div>
+
+                      <div className="flex items-center space-x-2 mb-1">
+                        <Checkbox 
+                          id="receiveHtml" 
+                          checked={receiveEditorType === "html"}
+                          onCheckedChange={() => setReceiveEditorType("html")}
+                        />
+                        <Label htmlFor="receiveHtml">仅提取源码</Label>
+                      </div>
                     </div>
                   </div>
                   
-                  {receiveEditorType && (
+                  {receiveEditorType && receiveEditorType !== 'html' && (
                     <div>
                       <Input
                         id="receiverId"
@@ -427,6 +442,27 @@ export default function EditPage() {
               >
                 {loading ? '处理中...' : '确认'}
               </Button>
+
+              {/* 源代码输出区域 */}
+              {extractedHtml && receiveEditorType === 'html' && (
+                <div className="mt-4 p-4 border rounded shadow-sm bg-gray-50 flex flex-col gap-2">
+                  <h3 className="text-sm font-semibold border-l-4 border-green-500 pl-2">提取的源码代码：</h3>
+                  <textarea 
+                      className="w-full h-40 text-xs p-2 border rounded" 
+                      readOnly 
+                      value={extractedHtml}
+                  />
+                  <Button 
+                      className="mt-2 text-xs bg-green-500 hover:bg-green-600 self-end" 
+                      onClick={() => {
+                        navigator.clipboard.writeText(extractedHtml);
+                        alert("复制成功！可以去任意地方粘贴。");
+                      }}
+                  >
+                      复制源码
+                  </Button>
+                </div>
+              )}
             </div>
           </Card>
         </div>

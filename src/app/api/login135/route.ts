@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server';
 import { storeCookies } from '@/lib/cookieStore';
 
-export async function GET() {
+export const dynamic = 'force-dynamic';
+
+export async function GET(request: Request) {
   try { 
     // 登录URL
     const loginUrl = 'https://www.135editor.com/users/login?&inajax=1&team_id=0';
@@ -11,8 +13,8 @@ export async function GET() {
     formData.append('type', 'html');
     formData.append('state', 'postmsg');
     formData.append('data[User][referer]', 'https://www.135editor.com/');
-    formData.append('data[User][email]', '15850225218');
-    formData.append('data[User][password]', '123456');
+    formData.append('data[User][email]', '18037106902');
+    formData.append('data[User][password]', 'MM141481');
     formData.append('data[User][remember_me]', '604800');
     
     // 发送登录请求
@@ -88,12 +90,47 @@ export async function GET() {
     } else {
       console.warn('没有获取到cookie');
     }
-    
-    // 获取响应内容
+    // 解析响应内容以判断是否真的登录成功
     const responseText = await response.text();
-    
+    let parsedResponse;
+    let isLoginSuccess = false;
+    let loginMessage = '登录请求完成';
+
+    try {
+      if (responseText) {
+        parsedResponse = JSON.parse(responseText);
+        // 通常 ret 为 0 表示成功，或者看是否拿到了 auth token
+        if (parsedResponse.ret === 0 || auth) {
+          isLoginSuccess = true;
+          loginMessage = parsedResponse.msg || '登录成功';
+        } else {
+          loginMessage = parsedResponse.msg || '获取凭证失败';
+        }
+      }
+    } catch (e) {
+      // 无法解析为JSON，降级通过 auth 判断
+      if (auth) {
+        isLoginSuccess = true;
+        loginMessage = '登录成功';
+      } else {
+        loginMessage = '返回异常，登录失败';
+      }
+    }
+
+    if (!isLoginSuccess) {
+      console.warn('135编辑器登录失败:', loginMessage, '内容:', responseText.substring(0, 500));
+      return NextResponse.json({
+        success: false,
+        error: loginMessage,
+        isCached: false,
+        responseStatus: response.status,
+        responseBody: responseText.substring(0, 500)
+      });
+    }
+
     return NextResponse.json({
       success: true,
+      message: loginMessage,
       cookies,
       isCached: false,
       responseStatus: response.status,
